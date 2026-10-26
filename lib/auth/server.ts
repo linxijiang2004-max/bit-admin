@@ -15,9 +15,12 @@ const getGate = cache(async () => {
 // The real security boundary. Call this at the top of EVERY page, Server
 // Action and Route Handler that touches data, before touching it. The proxy
 // is only a redirect convenience; do not rely on it.
-export async function requireSuperadmin(): Promise<{ email: string }> {
+export async function requireSuperadmin(): Promise<{
+  id: string;
+  email: string;
+}> {
   const gate = await getGate();
   if (gate.state === "anon") redirect("/login");
   if (gate.state === "forbidden") redirect("/not-authorized");
-  return { email: gate.email };
+  return { id: gate.id, email: gate.email };
 }

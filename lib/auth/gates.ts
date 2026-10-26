@@ -9,7 +9,7 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 export type Gate =
   | { state: "anon" }
   | { state: "forbidden" }
-  | { state: "ok"; email: string };
+  | { state: "ok"; id: string; email: string };
 
 export async function evaluateGates(supabase: SupabaseClient): Promise<Gate> {
   // Gate 1. getUser() verifies the access token with the Auth server, so a
@@ -34,5 +34,5 @@ export async function evaluateGates(supabase: SupabaseClient): Promise<Gate> {
     await supabase.rpc("is_superadmin");
   if (rpcError || isSuperadmin !== true) return { state: "forbidden" };
 
-  return { state: "ok", email: user.email ?? "" };
+  return { state: "ok", id: user.id, email: user.email ?? "" };
 }
