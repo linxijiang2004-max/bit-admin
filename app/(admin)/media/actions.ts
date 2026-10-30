@@ -2,15 +2,24 @@
 
 import { revalidatePath } from "next/cache";
 import { adminClient } from "@/lib/admin/db";
+import {
+  checkbox,
+  confirmedDelete,
+  dbError,
+  isError,
+  noRows,
+  text,
+  type FormState,
+} from "@/lib/admin/forms";
 import { IMAGE_BUCKET, isOwnUploadPath } from "@/lib/admin/upload";
 import { SUPABASE_URL } from "@/lib/supabase/env";
 
-export type FormState = { error?: string; ok?: string; done?: boolean } | undefined;
-
-// Every action: adminClient() runs requireSuperadmin() first, then every
-// database write goes through an admin_* SECURITY DEFINER RPC. The RPCs'
-// results prove nothing on their own (update/delete return void), so each
-// action reads the row back and checks the write actually landed.
+// Every action: adminClient() runs requireSuperadmin() first. Caption writes
+// go through the admin_*_caption SECURITY DEFINER RPCs (caption column grants
+// are revoked from authenticated). The RPCs' results prove nothing on their
+// own (update/delete return void), so each action reads the row back and
+// checks the write actually landed. Images-tab writes go straight to the
+// images table under superadmin RLS and ask for the affected rows back.
 
 const MAX_CONTENT = 2000;
 
@@ -196,27 +205,68 @@ export async function deleteCaption(
   return { ok: "deleted", done: true };
 }
 
-export async function deleteImage(
-  id: number,
-  _: FormState,
-  formData: FormData,
-): Promise<FormState> {
-  const { supabase } = await adminClient();
-  if (formData.get("confirm") !== "DELETE") return { error: "type DELETE to confirm" };
+// ---------- images tab ----------
 
-  // admin_delete_image refuses images that have captions, and returns the
-  // deleted row's url.
-  const { data: url, error } = await supabase.rpc("admin_delete_image", { p_id: id });
-  if (error) return { error: error.message };
-  if (typeof url !== "string") return { error: "admin_delete_image returned no url" };
+function readImageFields(fd: FormData) {
+  const description = text(fd, "description", { max: 2000 });
+  if (isError(description)) return description;
+  return { description, is_library: checkbox(fd, "is_library") };
+}
 
-  const { data: row, error: readError } = await supabase
+// The browser has already downscaled the file and put it in this admin's
+// Storage folder; this records the row with its public URL.
+export async function uploadImage(_: FormState, formData: FormData): Promise<FormState> {
+  const { admin, supabase } = await adminClient();
+
+  const path = String(formData.get("upload_path") ?? "");
+  const fields = readImageFields(formData);
+  const removeFile = () => supabase.storage.from(IMAGE_BUCKET).remove([path]);
+  if ("error" in fields) {
+    if (isOwnUploadPath(path, admin.id)) await removeFile();
+    return fields;
+  }
+
+  const url = await uploadedFileUrl(supabase, admin.id, path);
+  if (typeof url !== "string") return url;
+
+  const { data, error } = await supabase
     .from("images")
-    .select("id")
-    .eq("id", id)
-    .maybeSingle();
-  if (readError) return { error: readError.message };
-  if (row) return { error: "delete did not apply (image still exists)" };
+    .insert({ url, ...fields, profile_id: admin.id })
+    .select("id");
+  if (error || !data?.length) {
+    await removeFile();
+    return error ? { error: `couldn't save the image: ${dbError(error, "image")}` } : noRows("image", "create");
+  }
+
+  revalidatePath("/media");
+  revalidatePath("/");
+  return { ok: `uploaded image #${(data[0] as { id: number }).id}`, done: true };
+}
+
+export async function updateImage(id: number, _: FormState, formData: FormData): Promise<FormState> {
+  const { supabase } = await adminClient();
+  const fields = readImageFields(formData);
+  if ("error" in fields) return fields;
+
+  const { data, error } = await supabase.from("images").update(fields).eq("id", id).select("id");
+  if (error) return { error: dbError(error, "image") };
+  if (!data?.length) return noRows("image", "update");
+
+  revalidatePath("/media");
+  revalidatePath("/");
+  return { ok: "saved", done: true };
+}
+
+// Cascades: the image's captions go with it, and their votes and favorites
+// with them. The dialog says so, with counts, before the admin types DELETE.
+export async function deleteImage(id: number, _: FormState, formData: FormData): Promise<FormState> {
+  const { supabase } = await adminClient();
+  if (!confirmedDelete(formData)) return { error: "type DELETE to confirm" };
+
+  const { data, error } = await supabase.from("images").delete().eq("id", id).select("url");
+  if (error) return { error: dbError(error, "image") };
+  if (!data?.length) return noRows("image", "delete");
+  const url = (data[0] as { url: string }).url;
 
   revalidatePath("/media");
   revalidatePath("/");

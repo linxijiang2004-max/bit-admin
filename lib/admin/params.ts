@@ -18,8 +18,8 @@ export function pick<T extends string>(
   return allowed.includes(value as T) ? (value as T) : fallback;
 }
 
-export function pageOf(sp: SearchParams): number {
-  const n = Number(one(sp, "page"));
+export function pageOf(sp: SearchParams, key = "page"): number {
+  const n = Number(one(sp, key));
   return Number.isSafeInteger(n) && n >= 1 ? n : 1;
 }
 

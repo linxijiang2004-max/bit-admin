@@ -43,16 +43,19 @@ export function SortTh({
   );
 }
 
+// `param` names the page param, so one page can hold two paginated lists.
 export function Pagination({
   path,
   sp,
   page,
   total,
+  param = "page",
 }: {
   path: string;
   sp: SearchParams;
   page: number;
   total: number;
+  param?: string;
 }) {
   const pages = Math.max(1, Math.ceil(total / PAGE_SIZE));
   const from = total === 0 ? 0 : (page - 1) * PAGE_SIZE + 1;
@@ -67,7 +70,7 @@ export function Pagination({
       </span>
       <div className="flex items-center gap-1">
         {page > 1 ? (
-          <Link className={link} href={hrefWith(path, sp, { page: String(page - 1) })}>
+          <Link className={link} href={hrefWith(path, sp, { [param]: String(page - 1) })}>
             ← prev
           </Link>
         ) : (
@@ -77,16 +80,16 @@ export function Pagination({
         <form action={path} className="flex items-center gap-1 px-1">
           {Object.entries(sp).map(([k, v]) => {
             const value = Array.isArray(v) ? v[0] : v;
-            return k === "page" || value === undefined ? null : (
+            return k === param || value === undefined ? null : (
               <input key={k} type="hidden" name={k} value={value} />
             );
           })}
-          <label htmlFor={`page-${path}`} className="sr-only">
+          <label htmlFor={`${param}-${path}`} className="sr-only">
             Page number
           </label>
           <input
-            id={`page-${path}`}
-            name="page"
+            id={`${param}-${path}`}
+            name={param}
             type="number"
             min={1}
             max={pages}
@@ -100,7 +103,7 @@ export function Pagination({
           </button>
         </form>
         {page < pages ? (
-          <Link className={link} href={hrefWith(path, sp, { page: String(page + 1) })}>
+          <Link className={link} href={hrefWith(path, sp, { [param]: String(page + 1) })}>
             next →
           </Link>
         ) : (
@@ -117,19 +120,22 @@ export function FilterTabs({
   param,
   current,
   options,
+  resetPage,
 }: {
   path: string;
   sp: SearchParams;
   param: string;
   current: string;
   options: { value: string; label: string }[];
+  // The page param of the list this filters, when it isn't "page".
+  resetPage?: string;
 }) {
   return (
     <div className="flex rounded-card bg-bg p-0.5 text-xs">
       {options.map((o) => (
         <Link
           key={o.value}
-          href={hrefWith(path, sp, { [param]: o.value })}
+          href={hrefWith(path, sp, resetPage ? { [param]: o.value, [resetPage]: null } : { [param]: o.value })}
           className={`rounded-[8px] px-2.5 py-1 ${
             current === o.value ? "bg-card-hover text-text" : "text-muted hover:text-text"
           }`}
@@ -139,6 +145,17 @@ export function FilterTabs({
       ))}
     </div>
   );
+}
+
+// For GET filter forms: carry every other param through, minus the ones this
+// form sets itself and the page param it should reset.
+export function HiddenParams({ sp, omit }: { sp: SearchParams; omit: string[] }) {
+  return Object.entries(sp).map(([k, v]) => {
+    const value = Array.isArray(v) ? v[0] : v;
+    return omit.includes(k) || value === undefined || value === "" ? null : (
+      <input key={k} type="hidden" name={k} value={value} />
+    );
+  });
 }
 
 export const inputClass =

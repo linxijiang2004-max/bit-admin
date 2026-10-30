@@ -8,6 +8,11 @@ const SECTIONS = [
   { href: "/media", label: "Media" },
   { href: "/people", label: "People" },
   { href: "/votes", label: "Votes" },
+  { href: "/chains", label: "Chains" },
+  { href: "/models", label: "Models" },
+  { href: "/content", label: "Content" },
+  { href: "/responses", label: "Responses" },
+  { href: "/access", label: "Access" },
 ] as const;
 
 export function Nav() {

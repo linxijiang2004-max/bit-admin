@@ -13,54 +13,38 @@ export type ImageListRow = {
   owner_last_name: string | null;
   owner_email: string | null;
   caption_count: number;
-  captions: ImageCaption[];
-};
-
-export type ImageCaption = {
-  id: number;
-  content: string;
-  is_public: boolean;
-  like_count: number;
+  // Votes on this image's captions: what a delete would cascade into.
   vote_count: number;
-  created_at: string;
 };
 
 export async function listImages(opts: { page: number }) {
   const { supabase } = await adminClient();
   const [from, to] = rangeOf(opts.page);
 
-  const query = supabase
+  const { data, error, count } = await supabase
     .from("admin_image_rows")
     .select(
       "id, url, description, is_library, profile_id, created_at, owner_first_name, owner_last_name, owner_email, caption_count",
       { count: "exact" },
-    );
-
-  const { data, error, count } = await query
+    )
     .order("id", { ascending: false })
     .range(from, to);
   if (error) throw new Error(error.message);
   if (!data || count === null) throw new Error("image query returned no data");
 
-  const images = data as unknown as Omit<ImageListRow, "captions">[];
+  const images = data as unknown as Omit<ImageListRow, "vote_count">[];
 
-  // Captions for just the images on this page (never the whole table).
+  // Vote totals for just the images on this page (never the whole table).
   const ids = images.map((i) => i.id);
-  const byImage = new Map<number, ImageCaption[]>();
+  const votes = new Map<number, number>();
   if (ids.length) {
     const { data: caps, error: capError } = await supabase
       .from("admin_caption_rows")
-      .select("id, image_id, content, is_public, like_count, vote_count, created_at")
+      .select("image_id, vote_count")
       .in("image_id", ids)
-      .order("like_count", { ascending: false })
-      .order("id", { ascending: false })
-      .returns<(ImageCaption & { image_id: number })[]>();
+      .returns<{ image_id: number; vote_count: number }[]>();
     if (capError) throw new Error(capError.message);
-    for (const { image_id, ...c } of caps ?? []) {
-      const list = byImage.get(image_id) ?? [];
-      list.push({ ...c, vote_count: Number(c.vote_count) });
-      byImage.set(image_id, list);
-    }
+    for (const c of caps ?? []) votes.set(c.image_id, (votes.get(c.image_id) ?? 0) + Number(c.vote_count));
   }
 
   return {
@@ -68,7 +52,7 @@ export async function listImages(opts: { page: number }) {
     rows: images.map((r) => ({
       ...r,
       caption_count: Number(r.caption_count),
-      captions: byImage.get(r.id) ?? [],
+      vote_count: votes.get(r.id) ?? 0,
     })) as ImageListRow[],
   };
 }

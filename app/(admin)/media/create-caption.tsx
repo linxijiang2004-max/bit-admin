@@ -7,7 +7,7 @@ import {
   uploadPathFor,
   validateImageFile,
 } from "@/lib/admin/upload";
-import type { FormState } from "./actions";
+import type { FormState } from "@/lib/admin/forms";
 
 type Action = (state: FormState, formData: FormData) => Promise<FormState>;
 type Choice = { id: number; url: string; description: string | null };
