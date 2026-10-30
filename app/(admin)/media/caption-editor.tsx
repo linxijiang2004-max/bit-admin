@@ -32,7 +32,7 @@ export function CaptionEditor({
         <button
           type="button"
           onClick={() => setEditing(true)}
-          className="shrink-0 rounded px-1.5 text-[11px] text-muted opacity-0 hover:text-text focus:opacity-100 group-hover:opacity-100"
+          className="shrink-0 rounded px-1.5 text-[13px] text-muted opacity-0 hover:text-text focus:opacity-100 group-hover:opacity-100"
         >
           edit
         </button>
@@ -55,7 +55,7 @@ export function CaptionEditor({
         autoFocus
         className="w-full rounded-card bg-bg px-2 py-1.5 text-text focus:outline-none focus:ring-1 focus:ring-accent"
       />
-      <div className="flex items-center gap-3 text-xs">
+      <div className="flex items-center gap-3 text-[13px]">
         <label className="flex items-center gap-1.5">
           <input
             type="checkbox"

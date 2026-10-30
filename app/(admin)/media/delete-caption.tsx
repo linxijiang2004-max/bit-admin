@@ -57,7 +57,7 @@ export function DeleteCaption({
       <button
         type="button"
         onClick={() => setOpen(true)}
-        className="rounded-[6px] bg-danger/15 px-2 py-0.5 text-[11px] font-medium text-danger hover:bg-danger hover:text-white"
+        className="rounded-[6px] bg-danger/15 px-2.5 py-1 text-[13px] font-medium text-danger hover:bg-danger hover:text-white"
       >
         Delete
       </button>
@@ -72,9 +72,9 @@ export function DeleteCaption({
             role="dialog"
             aria-modal="true"
             aria-labelledby={`delete-title-${id}`}
-            className="w-full max-w-md whitespace-normal rounded-card bg-card p-4 text-left text-xs shadow-2xl shadow-black"
+            className="w-full max-w-md whitespace-normal rounded-card bg-card p-4 text-left text-[13px] shadow-2xl shadow-black"
           >
-            <h2 id={`delete-title-${id}`} className="text-sm font-medium text-text">
+            <h2 id={`delete-title-${id}`} className="text-[17px] font-semibold text-text">
               Delete caption {id} permanently?
             </h2>
             <p className="mt-2 line-clamp-3 rounded bg-bg p-2 text-text/80">{content}</p>

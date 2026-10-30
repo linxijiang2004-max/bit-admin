@@ -11,7 +11,7 @@ const PATH = "/votes";
 
 export default function VotesPage({ searchParams }: PageProps<"/votes">) {
   return (
-    <Section title="Votes">
+    <Section href={PATH}>
       <VotesContent searchParams={searchParams} />
     </Section>
   );
@@ -37,7 +37,7 @@ async function VotesContent({ searchParams }: { searchParams: Promise<SearchPara
   const filtered = direction !== "all" || !!from || !!to;
 
   return (
-    <div className="flex flex-col gap-2">
+    <div className="flex flex-col gap-4">
       <div className="grid grid-cols-2 gap-2 md:grid-cols-4">
         <Stat label="Total votes" value={formatInt(s.total)} />
         <Stat label="Upvotes ▲" value={formatInt(s.up)} detail={formatPct(s.up, s.total)} />
@@ -46,7 +46,7 @@ async function VotesContent({ searchParams }: { searchParams: Promise<SearchPara
       </div>
 
       <Panel>
-        <div className="mb-2 flex flex-wrap items-center gap-2">
+        <div className="mb-4 flex flex-wrap items-center gap-3">
           <FilterTabs
             path={PATH}
             sp={sp}
@@ -58,7 +58,7 @@ async function VotesContent({ searchParams }: { searchParams: Promise<SearchPara
               { value: "down", label: "▼ Down" },
             ]}
           />
-          <form action={PATH} className="flex items-center gap-1.5 text-xs text-muted">
+          <form action={PATH} className="flex flex-wrap items-center gap-2 text-[14px] text-muted">
             {direction !== "all" && <input type="hidden" name="vote" value={direction} />}
             <label className="flex items-center gap-1">
               from
@@ -68,19 +68,19 @@ async function VotesContent({ searchParams }: { searchParams: Promise<SearchPara
               to
               <input type="date" name="to" defaultValue={to} className={inputClass} />
             </label>
-            <button type="submit" className="rounded-card px-2 py-1 hover:text-text">
+            <button type="submit" className="rounded-card bg-white/5 px-3 py-2 text-text hover:bg-card-hover">
               apply
             </button>
           </form>
           {filtered && (
             <Link
               href={hrefWith(PATH, sp, { vote: null, from: null, to: null })}
-              className="text-xs text-muted hover:text-text"
+              className="text-[13px] text-muted hover:text-text"
             >
               clear filters
             </Link>
           )}
-          <span className="ml-auto text-xs text-muted">Read only · newest first · dates in UTC</span>
+          <span className="ml-auto text-[13px] text-muted">Read only · newest first · dates in UTC</span>
         </div>
 
         {rows.length === 0 ? (

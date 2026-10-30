@@ -10,7 +10,7 @@ const PATH = "/people";
 
 export default function PeoplePage({ searchParams }: PageProps<"/people">) {
   return (
-    <Section title="People">
+    <Section href={PATH}>
       <PeopleTable searchParams={searchParams} />
     </Section>
   );
@@ -35,7 +35,7 @@ async function PeopleTable({ searchParams }: { searchParams: Promise<SearchParam
 
   return (
     <Panel>
-      <p className="mb-2 text-xs text-muted">
+      <p className="mb-4 text-[14px] text-muted">
         Read only by design: profiles can&apos;t be edited or deleted here. Favorites
         show as counts only; who favorited what stays private.
       </p>
@@ -47,9 +47,7 @@ async function PeopleTable({ searchParams }: { searchParams: Promise<SearchParam
           <Table>
             <thead>
               <tr>
-                <Th />
-                <Th>Name</Th>
-                <Th>Email</Th>
+                <Th>Person</Th>
                 <SortTh label="Joined" column="created_at" {...sortProps} />
                 <SortTh label="Images" column="images_uploaded" num {...sortProps} />
                 <SortTh label="Captions" column="captions_authored" num {...sortProps} />
@@ -62,22 +60,22 @@ async function PeopleTable({ searchParams }: { searchParams: Promise<SearchParam
             <tbody>
               {result.rows.map((p) => (
                 <Tr key={p.id}>
-                  <Td className="w-8">
-                    {p.avatar_url ? (
-                      <Thumb url={p.avatar_url} size={22} />
-                    ) : (
-                      <div className="size-[22px] rounded bg-white/5" />
-                    )}
+                  <Td className="min-w-[16rem]">
+                    <div className="flex items-center gap-3">
+                      {p.avatar_url ? (
+                        <Thumb url={p.avatar_url} size={36} />
+                      ) : (
+                        <div className="size-9 shrink-0 rounded bg-white/5" />
+                      )}
+                      <div className="min-w-0">
+                        <div className="flex flex-wrap items-center gap-2">
+                          {fullName(p) || <span className="text-muted">no name</span>}
+                          {p.is_superadmin && <Badge tone="accent">superadmin</Badge>}
+                        </div>
+                        <div className="truncate text-[13px] text-muted">{p.email ?? "—"}</div>
+                      </div>
+                    </div>
                   </Td>
-                  <Td className="whitespace-nowrap">
-                    {fullName(p) || <span className="text-muted">—</span>}
-                    {p.is_superadmin && (
-                      <span className="ml-1.5">
-                        <Badge tone="accent">superadmin</Badge>
-                      </span>
-                    )}
-                  </Td>
-                  <Td muted>{p.email ?? "—"}</Td>
                   <Td muted className="whitespace-nowrap">
                     {formatDate(p.created_at)}
                   </Td>

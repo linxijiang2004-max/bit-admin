@@ -2,7 +2,7 @@
 // defaultValue, so they render on the server and pass into a client dialog.
 
 export const fieldClass =
-  "w-full rounded-card bg-bg px-2 py-1.5 text-xs text-text placeholder:text-muted/60 focus:outline-none focus:ring-1 focus:ring-accent";
+  "w-full rounded-card bg-bg px-3 py-2 text-[14px] text-text placeholder:text-muted/60 focus:outline-none focus:ring-1 focus:ring-accent";
 
 export function Field({
   label,
@@ -15,9 +15,9 @@ export function Field({
 }) {
   return (
     <label className="flex flex-col gap-1">
-      <span className="text-[11px] uppercase tracking-wider text-muted">{label}</span>
+      <span className="text-[13px] font-medium text-muted">{label}</span>
       {children}
-      {hint && <span className="text-[11px] leading-snug text-muted">{hint}</span>}
+      {hint && <span className="text-[13px] leading-snug text-muted">{hint}</span>}
     </label>
   );
 }
@@ -32,7 +32,7 @@ export function Check({
   defaultChecked?: boolean;
 }) {
   return (
-    <label className="flex items-center gap-1.5 text-xs">
+    <label className="flex items-center gap-2 text-[14px]">
       <input
         type="checkbox"
         name={name}
@@ -45,7 +45,7 @@ export function Check({
 }
 
 export function Mono({ children }: { children: React.ReactNode }) {
-  return <span className="font-mono text-[11px]">{children}</span>;
+  return <span className="font-mono text-[13px]">{children}</span>;
 }
 
 // Collapsible monospace block that preserves whitespace exactly.
@@ -60,7 +60,7 @@ export function CodeBlock({
 }) {
   return (
     <details open={open} className="group">
-      <summary className="cursor-pointer list-none text-[10px] uppercase tracking-wider text-muted hover:text-text">
+      <summary className="cursor-pointer list-none text-[13px] font-medium text-muted hover:text-text">
         <span className="group-open:hidden">▸</span>
         <span className="hidden group-open:inline">▾</span> {label}
         {text !== null && (
@@ -70,9 +70,9 @@ export function CodeBlock({
         )}
       </summary>
       {text === null ? (
-        <p className="mt-1 text-xs text-muted">null</p>
+        <p className="mt-1 text-[13px] text-muted">null</p>
       ) : (
-        <pre className="mt-1 max-h-96 overflow-auto whitespace-pre-wrap break-words rounded bg-bg p-2 font-mono text-[11px] leading-relaxed text-text/90">
+        <pre className="mt-1.5 max-h-[28rem] overflow-auto whitespace-pre-wrap break-words rounded-[8px] bg-bg p-3 font-mono text-[13px] leading-relaxed text-text/90">
           {text}
         </pre>
       )}

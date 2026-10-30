@@ -10,7 +10,7 @@ type Action = (state: FormState, formData: FormData) => Promise<FormState>;
 // scroll wrapper can't clip them. Fields are passed in as server-rendered
 // children with their defaultValues.
 
-function Modal({
+export function Modal({
   titleId,
   onClose,
   children,
@@ -29,7 +29,7 @@ function Modal({
         role="dialog"
         aria-modal="true"
         aria-labelledby={titleId}
-        className="max-h-full w-full max-w-lg overflow-y-auto whitespace-normal rounded-card bg-card p-4 text-left text-xs shadow-2xl shadow-black"
+        className="max-h-full w-full max-w-lg overflow-y-auto whitespace-normal rounded-card bg-card p-5 text-left text-[14px] shadow-2xl shadow-black"
       >
         {children}
       </div>
@@ -67,7 +67,7 @@ export function FormDialog({
         <button
           type="button"
           onClick={() => setOpen(true)}
-          className="rounded-card bg-accent px-2.5 py-1 text-xs font-medium text-bg hover:brightness-110"
+          className="rounded-card bg-accent px-3 py-1.5 text-[14px] font-medium text-bg hover:brightness-110"
         >
           {title}
         </button>
@@ -75,7 +75,7 @@ export function FormDialog({
         <button
           type="button"
           onClick={() => setOpen(true)}
-          className="rounded-[6px] bg-white/5 px-2 py-0.5 text-[11px] text-muted hover:bg-card-hover hover:text-text"
+          className="rounded-[6px] bg-white/5 px-2.5 py-1 text-[13px] text-muted hover:bg-card-hover hover:text-text"
         >
           Edit
         </button>
@@ -88,7 +88,7 @@ export function FormDialog({
 
       {open && (
         <Modal titleId={titleId} onClose={() => setOpen(false)}>
-          <h2 id={titleId} className="text-sm font-medium text-text">
+          <h2 id={titleId} className="text-[17px] font-semibold text-text">
             {title}
           </h2>
           <form action={formAction} className="mt-3 flex flex-col gap-2.5">
@@ -144,7 +144,7 @@ export function DeleteDialog({
       <button
         type="button"
         onClick={() => setOpen(true)}
-        className="rounded-[6px] bg-danger/15 px-2 py-0.5 text-[11px] font-medium text-danger hover:bg-danger hover:text-white"
+        className="rounded-[6px] bg-danger/15 px-2.5 py-1 text-[13px] font-medium text-danger hover:bg-danger hover:text-white"
       >
         Delete
       </button>
@@ -156,7 +156,7 @@ export function DeleteDialog({
 
       {open && (
         <Modal titleId={titleId} onClose={close}>
-          <h2 id={titleId} className="text-sm font-medium text-text">
+          <h2 id={titleId} className="text-[17px] font-semibold text-text">
             {title}
           </h2>
           <div className="mt-2 flex flex-col gap-2 text-muted">{children}</div>
@@ -215,12 +215,12 @@ export function InlineForm({
       <button
         type="submit"
         disabled={pending}
-        className="rounded-[6px] bg-white/5 px-2 py-0.5 text-[11px] text-muted hover:bg-card-hover hover:text-text disabled:opacity-50"
+        className="rounded-[6px] bg-white/5 px-2.5 py-1 text-[13px] text-muted hover:bg-card-hover hover:text-text disabled:opacity-50"
       >
         {pending ? "…" : submitLabel}
       </button>
-      {state?.error && <span className="text-[11px] text-accent">{state.error}</span>}
-      {state?.ok && !pending && <span className="text-[11px] text-muted">{state.ok}</span>}
+      {state?.error && <span className="text-[13px] text-accent">{state.error}</span>}
+      {state?.ok && !pending && <span className="text-[13px] text-muted">{state.ok}</span>}
     </form>
   );
 }

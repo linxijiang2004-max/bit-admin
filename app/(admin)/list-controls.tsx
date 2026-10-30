@@ -26,7 +26,7 @@ export function SortTh({
   return (
     <th
       aria-sort={active ? (dir === "asc" ? "ascending" : "descending") : undefined}
-      className={`whitespace-nowrap px-2 py-1.5 text-[11px] font-medium uppercase tracking-wider ${
+      className={`whitespace-nowrap px-3 pb-2.5 pt-1 text-[13px] font-medium ${
         num ? "text-right" : ""
       }`}
     >
@@ -50,21 +50,25 @@ export function Pagination({
   page,
   total,
   param = "page",
+  size = PAGE_SIZE,
 }: {
   path: string;
   sp: SearchParams;
   page: number;
   total: number;
   param?: string;
+  size?: number;
 }) {
-  const pages = Math.max(1, Math.ceil(total / PAGE_SIZE));
-  const from = total === 0 ? 0 : (page - 1) * PAGE_SIZE + 1;
-  const to = Math.min(page * PAGE_SIZE, total);
+  const pages = Math.max(1, Math.ceil(total / size));
+  // One page needs no controls; the list's own count already says how many.
+  if (pages === 1 && page === 1) return null;
+  const from = total === 0 ? 0 : (page - 1) * size + 1;
+  const to = Math.min(page * size, total);
   const link = "rounded-card px-2 py-1 hover:bg-card-hover";
   const off = "rounded-card px-2 py-1 text-muted/40";
 
   return (
-    <div className="mt-2 flex items-center justify-between text-xs text-muted">
+    <div className="mt-4 flex flex-wrap items-center justify-between gap-2 text-[13px] text-muted">
       <span>
         {formatInt(from)}–{formatInt(to)} of {formatInt(total)}
       </span>
@@ -131,12 +135,12 @@ export function FilterTabs({
   resetPage?: string;
 }) {
   return (
-    <div className="flex rounded-card bg-bg p-0.5 text-xs">
+    <div className="flex flex-wrap rounded-card bg-bg p-1 text-[14px]">
       {options.map((o) => (
         <Link
           key={o.value}
           href={hrefWith(path, sp, resetPage ? { [param]: o.value, [resetPage]: null } : { [param]: o.value })}
-          className={`rounded-[8px] px-2.5 py-1 ${
+          className={`rounded-[8px] px-3 py-1.5 ${
             current === o.value ? "bg-card-hover text-text" : "text-muted hover:text-text"
           }`}
         >
@@ -159,4 +163,4 @@ export function HiddenParams({ sp, omit }: { sp: SearchParams; omit: string[] })
 }
 
 export const inputClass =
-  "rounded-card bg-bg px-2.5 py-1 text-xs text-text placeholder:text-muted/60 focus:outline-none focus:ring-1 focus:ring-accent";
+  "rounded-card bg-bg px-3 py-2 text-[14px] text-text placeholder:text-muted/60 focus:outline-none focus:ring-1 focus:ring-accent";

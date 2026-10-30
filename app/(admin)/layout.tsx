@@ -1,7 +1,7 @@
 import { Suspense } from "react";
 import { requireSuperadmin } from "@/lib/auth/server";
 import { signOut } from "./actions";
-import { Nav } from "./nav";
+import { Sidebar } from "./nav";
 
 // Nothing outside the Suspense boundary, so the prerendered static shell is
 // empty: no chrome reaches anyone before the gate has run.
@@ -17,25 +17,27 @@ async function Shell({ children }: { children: React.ReactNode }) {
   const { email } = await requireSuperadmin();
 
   return (
-    <div className="flex min-h-screen flex-col">
-      <header className="flex h-10 shrink-0 items-center gap-6 bg-card px-3">
-        <span className="font-mono text-xs font-medium tracking-tight">
-          bit<span className="text-accent">/</span>admin
-        </span>
-        <Nav />
-        <div className="ml-auto flex items-center gap-3 text-xs">
-          <span className="text-muted">{email}</span>
-          <form action={signOut}>
-            <button
-              type="submit"
-              className="rounded-card px-2 py-1 text-muted hover:bg-card-hover hover:text-text"
-            >
-              sign out
-            </button>
-          </form>
-        </div>
-      </header>
-      <main className="flex-1 p-3">{children}</main>
+    <div className="flex min-h-screen flex-col md:flex-row">
+      <Sidebar
+        brand={
+          <span className="font-mono text-[13px] font-medium tracking-tight">
+            bit<span className="text-accent">/</span>admin
+          </span>
+        }
+        footer={
+          <div className="flex flex-col gap-1 text-[13px]">
+            <span className="truncate text-muted" title={email ?? undefined}>
+              {email}
+            </span>
+            <form action={signOut}>
+              <button type="submit" className="text-muted hover:text-text">
+                sign out
+              </button>
+            </form>
+          </div>
+        }
+      />
+      <main className="min-w-0 flex-1 px-4 py-6 md:px-10 md:py-8">{children}</main>
     </div>
   );
 }

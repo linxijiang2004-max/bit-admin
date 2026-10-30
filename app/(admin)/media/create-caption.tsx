@@ -13,7 +13,7 @@ type Action = (state: FormState, formData: FormData) => Promise<FormState>;
 type Choice = { id: number; url: string; description: string | null };
 
 const field =
-  "rounded-card bg-bg px-2 py-1.5 text-xs text-text focus:outline-none focus:ring-1 focus:ring-accent";
+  "rounded-card bg-bg px-2 py-1.5 text-[13px] text-text focus:outline-none focus:ring-1 focus:ring-accent";
 
 export function CreateCaption({
   action,
@@ -96,13 +96,13 @@ export function CreateCaption({
           className="hidden size-[120px] rounded bg-bg object-cover md:block"
         />
       ) : (
-        <div className="hidden size-[120px] items-center justify-center rounded bg-bg text-[11px] text-muted md:flex">
+        <div className="hidden size-[120px] items-center justify-center rounded bg-bg text-[13px] text-muted md:flex">
           no image
         </div>
       )}
 
       <div className="flex flex-col gap-2">
-        <div className="flex rounded-card bg-bg p-0.5 text-xs self-start">
+        <div className="flex rounded-card bg-bg p-0.5 text-[13px] self-start">
           {(
             [
               ["existing", "Existing image"],
@@ -126,7 +126,7 @@ export function CreateCaption({
 
         {source === "existing" ? (
           <fieldset className="flex flex-col gap-1">
-            <legend className="mb-1 text-[11px] uppercase tracking-wider text-muted">
+            <legend className="mb-1 text-[13px] uppercase tracking-wider text-muted">
               Image · 200 most recent · selected #{imageId}
             </legend>
             {/* Native radios (visually hidden) behind image tiles: real form
@@ -163,7 +163,7 @@ export function CreateCaption({
           </fieldset>
         ) : source === "link" ? (
           <label className="flex flex-col gap-1">
-            <span className="text-[11px] uppercase tracking-wider text-muted">
+            <span className="text-[13px] uppercase tracking-wider text-muted">
               Image link · https · stored as a link, not copied
             </span>
             <input
@@ -178,15 +178,15 @@ export function CreateCaption({
               placeholder="https://…/photo.jpg"
               className={field}
             />
-            {link && !isHttps && <span className="text-xs text-accent">must start with https://</span>}
+            {link && !isHttps && <span className="text-[13px] text-accent">must start with https://</span>}
             {isHttps && linkState === "broken" && (
-              <span className="text-xs text-accent">that link didn&apos;t load as an image</span>
+              <span className="text-[13px] text-accent">that link didn&apos;t load as an image</span>
             )}
-            {isHttps && linkState === "idle" && <span className="text-xs text-muted">checking…</span>}
+            {isHttps && linkState === "idle" && <span className="text-[13px] text-muted">checking…</span>}
           </label>
         ) : (
           <label className="flex flex-col gap-1">
-            <span className="text-[11px] uppercase tracking-wider text-muted">
+            <span className="text-[13px] uppercase tracking-wider text-muted">
               File · png, jpeg, webp, gif · max 5 MB · saved to bit as your upload
             </span>
             <input
@@ -198,18 +198,18 @@ export function CreateCaption({
                 setFileError(file ? validateImageFile(file) : null);
                 setPreview(file ? URL.createObjectURL(file) : null);
               }}
-              className="text-xs text-muted file:mr-3 file:rounded-card file:border-0 file:bg-card-hover file:px-2.5 file:py-1 file:text-text"
+              className="text-[13px] text-muted file:mr-3 file:rounded-card file:border-0 file:bg-card-hover file:px-2.5 file:py-1 file:text-text"
             />
-            {fileError && <span className="text-xs text-accent">{fileError}</span>}
+            {fileError && <span className="text-[13px] text-accent">{fileError}</span>}
           </label>
         )}
 
         <label className="flex flex-col gap-1">
-          <span className="text-[11px] uppercase tracking-wider text-muted">Caption</span>
+          <span className="text-[13px] uppercase tracking-wider text-muted">Caption</span>
           <textarea name="content" rows={2} maxLength={2000} required className={field} />
         </label>
 
-        <div className="flex items-center gap-3 text-xs">
+        <div className="flex items-center gap-3 text-[13px]">
           <label className="flex items-center gap-1.5">
             <input type="checkbox" name="is_public" className="accent-[var(--accent)]" />
             published

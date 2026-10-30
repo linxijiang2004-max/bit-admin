@@ -14,7 +14,7 @@ const COLUMNS = 8;
 
 export default function ResponsesPage({ searchParams }: PageProps<"/responses">) {
   return (
-    <Section title="LLM responses">
+    <Section href={PATH}>
       <ResponsesContent searchParams={searchParams} />
     </Section>
   );
@@ -44,8 +44,8 @@ async function ResponsesContent({ searchParams }: { searchParams: Promise<Search
 
   return (
     <Panel>
-      <div className="mb-2 flex flex-wrap items-center gap-2">
-        <form action={PATH} className="flex flex-wrap items-center gap-1.5 text-xs text-muted">
+      <div className="mb-4 flex flex-wrap items-center gap-3">
+        <form action={PATH} className="flex flex-wrap items-center gap-2 text-[14px] text-muted">
           <HiddenParams sp={sp} omit={["model", "from", "to", "page", "open"]} />
           <input
             name="model"
@@ -70,19 +70,19 @@ async function ResponsesContent({ searchParams }: { searchParams: Promise<Search
             to
             <input type="date" name="to" defaultValue={to} className={inputClass} />
           </label>
-          <button type="submit" className="rounded-card px-2 py-1 hover:text-text">
+          <button type="submit" className="rounded-card bg-white/5 px-3 py-2 text-text hover:bg-card-hover">
             apply
           </button>
         </form>
         {filtered && (
           <Link
             href={hrefWith(PATH, sp, { model: null, from: null, to: null, open: null })}
-            className="text-xs text-muted hover:text-text"
+            className="text-[13px] text-muted hover:text-text"
           >
             clear filters
           </Link>
         )}
-        <span className="ml-auto text-xs text-muted">Read only · newest first · dates in UTC</span>
+        <span className="ml-auto text-[13px] text-muted">Read only · newest first · dates in UTC</span>
       </div>
 
       {result.rows.length === 0 ? (
@@ -118,7 +118,7 @@ async function ResponsesContent({ searchParams }: { searchParams: Promise<Search
                           scroll={false}
                           aria-expanded={open}
                           aria-label={`${open ? "Hide" : "Show"} LLM responses for request ${r.id}`}
-                          className="text-muted hover:text-text"
+                          className="inline-flex size-8 items-center justify-center rounded-[6px] text-[20px] leading-none text-muted hover:bg-white/5 hover:text-text"
                         >
                           {open ? "▾" : "▸"}
                         </Link>
@@ -192,7 +192,7 @@ async function Responses({ requestId }: { requestId: number }) {
     <ol className="flex flex-col gap-2">
       {steps.map((s) => (
         <li key={s.id} className="flex flex-col gap-1.5 rounded-card bg-card p-2.5">
-          <div className="flex items-center gap-2 text-xs">
+          <div className="flex items-center gap-2 text-[13px]">
             <span className="font-mono text-accent">{s.step_index}</span>
             <span className="font-medium">{s.step_name}</span>
             <span className="ml-auto text-muted">

@@ -5,9 +5,9 @@ Separate Next.js app and Vercel project, same Supabase project as bit.
 
 | Section  | Access |
 | -------- | ------ |
-| Overview | Stats: totals, 14-day generation activity, caption coverage, top captions, most active people, LLM calls by model |
+| Overview | Publish rate, then four questions: activity by hour and weekday (New York time); words and terms in voted captions; share of votes by image category (keyword-derived from each image's AI description, with a sample image per category); who and what produces captions |
 | Media → AI captions | **CREATE / READ / UPDATE / DELETE** AI-generated captions. Filter by published state, text and created date; sort every numeric column; inline edit; typed `DELETE` confirmation; a provenance drawer with every generation step (prompt, model, raw output). New captions can use an existing image, an uploaded file or a pasted https link. |
-| Media → Images | Every image with all of its captions. Images with no captions can be deleted (row and Storage file). |
+| Images | **CREATE / READ / UPDATE / DELETE** images as a thumbnail grid (all / unused, sort by newest, captions or votes), with upload downscaled in the browser. `/images/[id]` shows every caption from that image (edit, delete, vote split) and its generation requests with each LLM call; delete cascades to captions and votes. |
 | People   | **READ** profiles with uploads, captions, published captions, publish rate, votes cast and favorites received (counts only) |
 | Votes    | **READ** every upvote / downvote, filtered by direction and date range |
 

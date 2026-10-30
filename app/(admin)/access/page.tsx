@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation";
 import { listDomains, listEmails, type DomainRow, type EmailRow } from "@/lib/admin/access";
-import { formatDate, formatInt } from "@/lib/admin/format";
+import { formatDate } from "@/lib/admin/format";
 import { clampPage, hrefWith, pageOf, type SearchParams } from "@/lib/admin/params";
 import { DeleteDialog, FormDialog } from "../dialogs";
 import { Field, fieldClass, Mono } from "../fields";
@@ -20,7 +20,7 @@ const PATH = "/access";
 
 export default function AccessPage({ searchParams }: PageProps<"/access">) {
   return (
-    <Section title="Access">
+    <Section href={PATH}>
       <AccessContent searchParams={searchParams} />
     </Section>
   );
@@ -45,21 +45,23 @@ async function AccessContent({ searchParams }: { searchParams: Promise<SearchPar
   }
 
   return (
-    <div className="flex flex-col gap-2">
-      <p className="rounded-card bg-card px-3 py-2 text-xs text-muted">
+    <div className="grid items-start gap-4 min-[1100px]:grid-cols-2 [&>*]:min-w-0">
+      <p className="rounded-card bg-accent/10 px-4 py-3 text-muted min-[1100px]:col-span-2">
         These lists are managed here but are <span className="text-text">not yet enforced at signup</span>;
         editing them does not change who can sign up today.
       </p>
 
-      <Panel>
-        <div className="mb-2 flex items-center justify-between">
-          <h2 className="text-[11px] font-medium uppercase tracking-wider text-muted">
-            Allowed signup domains · {formatInt(domains.total)}
-          </h2>
+      <Panel
+        title="Allowed signup domains"
+        count={domains.total}
+        actions={
+          <>
           <FormDialog trigger="new" title="New domain" submitLabel="Add" action={createDomain}>
             <DomainFields />
           </FormDialog>
-        </div>
+          </>
+        }
+      >
         {domains.rows.length === 0 ? (
           <Empty>No domains listed.</Empty>
         ) : (
@@ -102,15 +104,17 @@ async function AccessContent({ searchParams }: { searchParams: Promise<SearchPar
         )}
       </Panel>
 
-      <Panel>
-        <div className="mb-2 flex items-center justify-between">
-          <h2 className="text-[11px] font-medium uppercase tracking-wider text-muted">
-            Whitelisted emails · {formatInt(emails.total)}
-          </h2>
+      <Panel
+        title="Whitelisted emails"
+        count={emails.total}
+        actions={
+          <>
           <FormDialog trigger="new" title="New email" submitLabel="Add" action={createEmail}>
             <EmailFields />
           </FormDialog>
-        </div>
+          </>
+        }
+      >
         {emails.rows.length === 0 ? (
           <Empty>No emails listed.</Empty>
         ) : (

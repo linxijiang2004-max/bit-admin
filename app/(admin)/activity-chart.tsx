@@ -26,7 +26,7 @@ export function ActivityChart({
                 height: d.captions === 0 ? 0 : `max(2px, ${(d.captions / max) * 100}%)`,
               }}
             />
-            <div className="pointer-events-none absolute bottom-full left-1/2 z-10 mb-1 hidden -translate-x-1/2 whitespace-nowrap rounded bg-bg px-2 py-1 text-[11px] shadow-lg group-hover:block">
+            <div className="pointer-events-none absolute bottom-full left-1/2 z-10 mb-1 hidden -translate-x-1/2 whitespace-nowrap rounded bg-bg px-2 py-1 text-[13px] shadow-lg group-hover:block">
               <div className="text-muted">{d.day}</div>
               <div>
                 {d.captions} captions · {d.runs} runs
@@ -35,7 +35,7 @@ export function ActivityChart({
           </div>
         ))}
       </div>
-      <figcaption className="mt-1 flex justify-between text-[11px] text-muted">
+      <figcaption className="mt-1 flex justify-between text-[13px] text-muted">
         <span>{days[0]?.day}</span>
         <span>{days.at(-1)?.day}</span>
       </figcaption>

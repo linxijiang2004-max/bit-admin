@@ -24,12 +24,12 @@ export function pageOf(sp: SearchParams, key = "page"): number {
 }
 
 // A typed page past the end shows the last page instead of an empty table.
-export function clampPage(page: number, total: number): number {
-  return Math.min(page, Math.max(1, Math.ceil(total / PAGE_SIZE)));
+export function clampPage(page: number, total: number, size = PAGE_SIZE): number {
+  return Math.min(page, Math.max(1, Math.ceil(total / size)));
 }
 
-export function rangeOf(page: number): [number, number] {
-  return [(page - 1) * PAGE_SIZE, page * PAGE_SIZE - 1];
+export function rangeOf(page: number, size = PAGE_SIZE): [number, number] {
+  return [(page - 1) * size, page * size - 1];
 }
 
 export function dirOf(sp: SearchParams): "asc" | "desc" {

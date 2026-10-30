@@ -20,7 +20,7 @@ const PATH = "/models";
 
 export default function ModelsPage({ searchParams }: PageProps<"/models">) {
   return (
-    <Section title="Models">
+    <Section href={PATH}>
       <ModelsContent searchParams={searchParams} />
     </Section>
   );
@@ -49,16 +49,18 @@ async function ModelsContent({ searchParams }: { searchParams: Promise<SearchPar
   }
 
   return (
-    <div className="flex flex-col gap-2">
-      <Panel>
-        <div className="mb-2 flex items-center justify-between">
-          <h2 className="text-[11px] font-medium uppercase tracking-wider text-muted">
-            Providers · {formatInt(providers.total)}
-          </h2>
+    <div className="flex flex-col gap-4">
+      <Panel
+        title="Providers"
+        count={providers.total}
+        actions={
+          <>
           <FormDialog trigger="new" title="New provider" submitLabel="Create" action={createProvider}>
             <ProviderFields />
           </FormDialog>
-        </div>
+          </>
+        }
+      >
         {providers.rows.length === 0 ? (
           <Empty>No providers yet. Add one before adding models.</Empty>
         ) : (
@@ -112,19 +114,21 @@ async function ModelsContent({ searchParams }: { searchParams: Promise<SearchPar
         )}
       </Panel>
 
-      <Panel>
-        <div className="mb-2 flex items-center justify-between">
-          <h2 className="text-[11px] font-medium uppercase tracking-wider text-muted">
-            Models · {formatInt(models.total)}
-          </h2>
+      <Panel
+        title="Models"
+        count={models.total}
+        actions={
+          <>
           {choices.length > 0 ? (
             <FormDialog trigger="new" title="New model" submitLabel="Create" action={createModel}>
               <ModelFields providers={choices} />
             </FormDialog>
           ) : (
-            <span className="text-xs text-muted">add a provider first</span>
+            <span className="text-[13px] text-muted">add a provider first</span>
           )}
-        </div>
+          </>
+        }
+      >
         {models.rows.length === 0 ? (
           <Empty>No models yet.</Empty>
         ) : (

@@ -16,7 +16,7 @@ const COLUMNS = 8;
 
 export default function ChainsPage({ searchParams }: PageProps<"/chains">) {
   return (
-    <Section title="Prompt chains">
+    <Section href={PATH}>
       <ChainsContent searchParams={searchParams} />
     </Section>
   );
@@ -40,7 +40,7 @@ async function ChainsContent({ searchParams }: { searchParams: Promise<SearchPar
 
   return (
     <Panel>
-      <p className="mb-2 text-xs text-muted">
+      <p className="mb-4 text-[14px] text-muted">
         Chains and their steps are read only. The mix is edit only: set each chain&apos;s
         weight and whether it&apos;s in rotation. Share = weight ÷ total weight of enabled
         chains ({formatInt(result.enabledChains)} enabled, total weight{" "}
@@ -78,7 +78,7 @@ async function ChainsContent({ searchParams }: { searchParams: Promise<SearchPar
                           scroll={false}
                           aria-expanded={open}
                           aria-label={`${open ? "Hide" : "Show"} steps of ${c.name}`}
-                          className="text-muted hover:text-text"
+                          className="inline-flex size-8 items-center justify-center rounded-[6px] text-[20px] leading-none text-muted hover:bg-white/5 hover:text-text"
                         >
                           {open ? "▾" : "▸"}
                         </Link>
@@ -111,9 +111,9 @@ async function ChainsContent({ searchParams }: { searchParams: Promise<SearchPar
                               step="any"
                               required
                               defaultValue={c.mix.weight}
-                              className="w-20 rounded-[6px] bg-bg px-1.5 py-0.5 text-right text-xs text-text focus:outline-none focus:ring-1 focus:ring-accent"
+                              className="w-20 rounded-[6px] bg-bg px-1.5 py-0.5 text-right text-[13px] text-text focus:outline-none focus:ring-1 focus:ring-accent"
                             />
-                            <label className="flex items-center gap-1 text-[11px] text-muted">
+                            <label className="flex items-center gap-1 text-[13px] text-muted">
                               <input
                                 type="checkbox"
                                 name="is_enabled"
@@ -124,7 +124,7 @@ async function ChainsContent({ searchParams }: { searchParams: Promise<SearchPar
                             </label>
                           </InlineForm>
                         ) : (
-                          <span className="text-xs text-muted" title="No prompt_chain_mix row; rows are not created here">
+                          <span className="text-[13px] text-muted" title="No prompt_chain_mix row; rows are not created here">
                             not in mix
                           </span>
                         )}
@@ -169,7 +169,7 @@ async function ChainSteps({ chainId }: { chainId: number }) {
     <ol className="flex flex-col gap-2">
       {steps.map((s) => (
         <li key={s.id} className="rounded-card bg-card p-2.5">
-          <div className="mb-1.5 flex items-center gap-2 text-xs">
+          <div className="mb-1.5 flex items-center gap-2 text-[13px]">
             <span className="font-mono text-accent">{s.step_index}</span>
             <span className="font-medium">{s.step_name}</span>
             <span className="ml-auto text-muted">

@@ -1,9 +1,9 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { redirect } from "next/navigation";
 import { adminClient } from "@/lib/admin/db";
 import {
-  checkbox,
   confirmedDelete,
   dbError,
   isError,
@@ -22,6 +22,14 @@ import { SUPABASE_URL } from "@/lib/supabase/env";
 // images table under superadmin RLS and ask for the affected rows back.
 
 const MAX_CONTENT = 2000;
+
+// Captions and images show on /media, the /images grid and detail pages, and
+// the overview stats.
+function revalidateContent() {
+  revalidatePath("/media");
+  revalidatePath("/images", "layout");
+  revalidatePath("/");
+}
 
 function readContent(formData: FormData): string | { error: string } {
   const content = String(formData.get("content") ?? "").trim();
@@ -68,7 +76,7 @@ export async function createCaption(_: FormState, formData: FormData): Promise<F
     p_is_public: isPublic,
   });
   if (error) {
-    if (createdImage) revalidatePath("/media");
+    if (createdImage) revalidateContent();
     return {
       error: createdImage
         ? `image #${imageId} was saved, but the caption failed: ${error.message}`
@@ -88,8 +96,7 @@ export async function createCaption(_: FormState, formData: FormData): Promise<F
   if (readError) return { error: readError.message };
   if (!row) return { error: `caption ${newId} not found after create` };
 
-  revalidatePath("/media");
-  revalidatePath("/");
+  revalidateContent();
   return {
     ok: createdImage ? `created image #${imageId} and caption ${newId}` : `created caption ${newId}`,
     done: true,
@@ -174,8 +181,7 @@ export async function updateCaption(
     return { error: "update did not apply (caption unchanged in the database)" };
   }
 
-  revalidatePath("/media");
-  revalidatePath("/");
+  revalidateContent();
   return { ok: "saved", done: true };
 }
 
@@ -200,17 +206,18 @@ export async function deleteCaption(
   if (readError) return { error: readError.message };
   if (row) return { error: "delete did not apply (caption still exists)" };
 
-  revalidatePath("/media");
-  revalidatePath("/");
+  revalidateContent();
   return { ok: "deleted", done: true };
 }
 
-// ---------- images tab ----------
+// ---------- images ----------
 
 function readImageFields(fd: FormData) {
   const description = text(fd, "description", { max: 2000 });
   if (isError(description)) return description;
-  return { description, is_library: checkbox(fd, "is_library") };
+  // is_library is deliberately not written: bit has no page that lists
+  // library images, so the admin doesn't manage the flag.
+  return { description };
 }
 
 // The browser has already downscaled the file and put it in this admin's
@@ -238,8 +245,7 @@ export async function uploadImage(_: FormState, formData: FormData): Promise<For
     return error ? { error: `couldn't save the image: ${dbError(error, "image")}` } : noRows("image", "create");
   }
 
-  revalidatePath("/media");
-  revalidatePath("/");
+  revalidateContent();
   return { ok: `uploaded image #${(data[0] as { id: number }).id}`, done: true };
 }
 
@@ -252,14 +258,35 @@ export async function updateImage(id: number, _: FormState, formData: FormData):
   if (error) return { error: dbError(error, "image") };
   if (!data?.length) return noRows("image", "update");
 
-  revalidatePath("/media");
-  revalidatePath("/");
+  revalidateContent();
   return { ok: "saved", done: true };
 }
 
 // Cascades: the image's captions go with it, and their votes and favorites
 // with them. The dialog says so, with counts, before the admin types DELETE.
 export async function deleteImage(id: number, _: FormState, formData: FormData): Promise<FormState> {
+  const r = await removeImage(id, formData);
+  if ("error" in r) return { error: r.error };
+  if (r.orphan) {
+    return {
+      error: `image #${id} was deleted, but its file is still in Storage (${r.orphan.reason}). Remove ${r.orphan.path} in Supabase → Storage → images.`,
+    };
+  }
+  return { ok: r.external ? `deleted image #${id} (external link, no file to remove)` : `deleted image #${id} and its file`, done: true };
+}
+
+// From /images/[id]: the page is gone once the row is, so go back to the grid
+// and carry the outcome there (a leftover Storage file is named in the URL).
+export async function deleteImageAndLeave(id: number, _: FormState, formData: FormData): Promise<FormState> {
+  const r = await removeImage(id, formData);
+  if ("error" in r) return { error: r.error };
+  redirect(`/images?deleted=${id}${r.orphan ? `&orphan=${encodeURIComponent(r.orphan.path)}` : ""}`);
+}
+
+async function removeImage(
+  id: number,
+  formData: FormData,
+): Promise<{ error: string } | { external: boolean; orphan?: { path: string; reason: string } }> {
   const { supabase } = await adminClient();
   if (!confirmedDelete(formData)) return { error: "type DELETE to confirm" };
 
@@ -268,26 +295,19 @@ export async function deleteImage(id: number, _: FormState, formData: FormData):
   if (!data?.length) return noRows("image", "delete");
   const url = (data[0] as { url: string }).url;
 
-  revalidatePath("/media");
-  revalidatePath("/");
+  revalidateContent();
 
   // The bucket is public: until the file is gone, its URL still serves the
   // picture. Remove it, then confirm the URL no longer answers.
   const prefix = `${SUPABASE_URL}/storage/v1/object/public/${IMAGE_BUCKET}/`;
-  if (!url.startsWith(prefix)) {
-    return { ok: `deleted image #${id} (external link, no file to remove)`, done: true };
-  }
+  if (!url.startsWith(prefix)) return { external: true };
   const path = decodeURIComponent(url.slice(prefix.length).split("?")[0]);
   const { data: removed, error: removeError } = await supabase.storage
     .from(IMAGE_BUCKET)
     .remove([path]);
   const head = await fetch(url, { method: "HEAD", cache: "no-store" }).catch(() => null);
   if (removeError || !removed?.length || head?.ok) {
-    return {
-      error: `image #${id} was deleted, but its file is still in Storage (${
-        removeError?.message ?? "storage refused the delete"
-      }). Remove ${path} in Supabase → Storage → images.`,
-    };
+    return { external: false, orphan: { path, reason: removeError?.message ?? "storage refused the delete" } };
   }
-  return { ok: `deleted image #${id} and its file`, done: true };
+  return { external: false };
 }

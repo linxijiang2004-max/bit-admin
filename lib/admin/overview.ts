@@ -1,5 +1,6 @@
 import "server-only";
 import { adminClient, displayName, fetchAll } from "./db";
+import { activityByHour, captionTopics, categoryEngagement } from "./insights";
 import type { CaptionRow, ImageRow, ProfileRow, VoteRow } from "./types";
 
 type StepRow = { model: string; step_name: string };
@@ -12,7 +13,7 @@ const DAYS = 14;
 export async function getOverview() {
   const { supabase } = await adminClient();
 
-  const [profiles, images, captions, votes, requests, steps] =
+  const [profiles, images, captions, votes, requests, steps, terms] =
     await Promise.all([
       fetchAll<Pick<ProfileRow, "id" | "email" | "first_name" | "last_name" | "is_superadmin" | "created_at">>(
         (a, b) =>
@@ -22,10 +23,10 @@ export async function getOverview() {
             .order("id")
             .range(a, b),
       ),
-      fetchAll<Pick<ImageRow, "id" | "url" | "is_library" | "profile_id">>((a, b) =>
+      fetchAll<Pick<ImageRow, "id" | "url" | "profile_id" | "description">>((a, b) =>
         supabase
           .from("images")
-          .select("id, url, is_library, profile_id")
+          .select("id, url, profile_id, description")
           .order("id")
           .range(a, b),
       ),
@@ -38,10 +39,10 @@ export async function getOverview() {
           .order("id")
           .range(a, b),
       ),
-      fetchAll<Pick<VoteRow, "caption_id" | "vote_value">>((a, b) =>
+      fetchAll<Pick<VoteRow, "caption_id" | "vote_value" | "created_at">>((a, b) =>
         supabase
           .from("caption_votes")
-          .select("caption_id, vote_value")
+          .select("caption_id, vote_value, created_at")
           .order("id")
           .range(a, b),
       ),
@@ -59,12 +60,15 @@ export async function getOverview() {
           .order("id")
           .range(a, b),
       ),
+      fetchAll<{ term: string }>((a, b) =>
+        supabase.from("terms").select("term").eq("is_active", true).order("id").range(a, b),
+      ),
     ]);
 
   const profileById = new Map(profiles.map((p) => [p.id, p]));
   const imageById = new Map(images.map((i) => [i.id, i]));
 
-  // --- captions per image: how well is the library covered? ---
+  // --- captions per image: how well are the images covered? ---
   const captionsPerImage = new Map<number, number>();
   for (const c of captions) {
     captionsPerImage.set(c.image_id, (captionsPerImage.get(c.image_id) ?? 0) + 1);
@@ -134,12 +138,29 @@ export async function getOverview() {
 
   const publicCaptions = captions.filter((c) => c.is_public).length;
 
+  // --- publish rate, last 30 days vs the 30 before (by caption created_at) ---
+  // Only the current is_public is stored, so this compares the windows' cohorts
+  // as they stand now, not the rate as it was 30 days ago.
+  const windowStart = (daysAgo: number) => {
+    const d = new Date(today);
+    d.setUTCDate(d.getUTCDate() - daysAgo + 1);
+    return d.getTime();
+  };
+  const recentFrom = windowStart(30);
+  const priorFrom = windowStart(60);
+  const cohort = (from: number, to: number | null) => {
+    const rows = captions.filter((c) => {
+      const t = Date.parse(c.created_at);
+      return t >= from && (to === null || t < to);
+    });
+    return { captions: rows.length, published: rows.filter((c) => c.is_public).length };
+  };
+
   return {
     totals: {
       people: profiles.length,
       superadmins: profiles.filter((p) => p.is_superadmin).length,
       images: images.length,
-      libraryImages: images.filter((i) => i.is_library).length,
       captions: captions.length,
       publicCaptions,
       draftCaptions: captions.length - publicCaptions,
@@ -156,7 +177,14 @@ export async function getOverview() {
         captionedImages === 0 ? 0 : captions.length / captionedImages,
       captionsPerRun: requests.length === 0 ? 0 : captions.length / requests.length,
     },
+    publishTrend: {
+      recent: cohort(recentFrom, null),
+      prior: cohort(priorFrom, recentFrom),
+    },
     activity,
+    hourly: activityByHour(requests, votes),
+    topics: captionTopics(captions, votes, terms.map((t) => t.term)),
+    categories: categoryEngagement(images, captions, votes),
     topCaptions,
     models,
     topPeople,

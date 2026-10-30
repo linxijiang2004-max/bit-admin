@@ -27,10 +27,10 @@ export async function ProvenanceDrawer({ id, closeHref }: { id: number; closeHre
         className="fixed inset-y-0 right-0 z-40 flex w-full max-w-[720px] flex-col bg-card shadow-2xl shadow-black"
       >
         <header className="flex h-10 shrink-0 items-center justify-between bg-card-hover px-3">
-          <h2 className="text-xs font-medium uppercase tracking-wider text-muted">
+          <h2 className="text-[13px] font-medium uppercase tracking-wider text-muted">
             Provenance · caption {id}
           </h2>
-          <Link href={closeHref} scroll={false} className="text-xs text-muted hover:text-text">
+          <Link href={closeHref} scroll={false} className="text-[13px] text-muted hover:text-text">
             close ✕
           </Link>
         </header>
@@ -52,8 +52,8 @@ export async function ProvenanceDrawer({ id, closeHref }: { id: number; closeHre
                   />
                 )}
                 <div className="min-w-0 flex-1">
-                  <p className="text-sm">{p.caption.content}</p>
-                  <dl className="mt-2 grid grid-cols-[auto_1fr] gap-x-3 gap-y-0.5 text-xs">
+                  <p className="text-[15px]">{p.caption.content}</p>
+                  <dl className="mt-2 grid grid-cols-[auto_1fr] gap-x-3 gap-y-0.5 text-[13px]">
                     <dt className="text-muted">Status</dt>
                     <dd>{p.caption.is_public ? <Badge tone="accent">published</Badge> : <Badge>draft</Badge>}</dd>
                     <dt className="text-muted">Score · votes · favs</dt>
@@ -76,7 +76,7 @@ export async function ProvenanceDrawer({ id, closeHref }: { id: number; closeHre
                 </p>
               ) : (
                 <>
-                  <div className="rounded-card bg-bg px-3 py-2 text-xs">
+                  <div className="rounded-card bg-bg px-3 py-2 text-[13px]">
                     <span className="text-muted">Request</span> #{p.request.id}
                     <span className="text-muted"> · by </span>
                     {p.requester ?? p.request.profile_id.slice(0, 8)}
@@ -92,10 +92,10 @@ export async function ProvenanceDrawer({ id, closeHref }: { id: number; closeHre
                   <ol className="flex flex-col gap-2">
                     {p.steps.map((s) => (
                       <li key={s.id} className="rounded-card bg-bg">
-                        <div className="flex items-center gap-2 px-3 py-2 text-xs">
+                        <div className="flex items-center gap-2 px-3 py-2 text-[13px]">
                           <span className="font-mono text-accent">{s.step_index}</span>
                           <span className="font-medium">{s.step_name}</span>
-                          <span className="ml-auto font-mono text-[11px] text-muted">{s.model}</span>
+                          <span className="ml-auto font-mono text-[13px] text-muted">{s.model}</span>
                         </div>
                         <Block label="Prompt" text={s.prompt} />
                         <Block label="Raw output" text={s.raw_output} />
@@ -115,11 +115,11 @@ export async function ProvenanceDrawer({ id, closeHref }: { id: number; closeHre
 function Block({ label, text }: { label: string; text: string | null }) {
   return (
     <div className="px-3 pb-2">
-      <div className="mb-1 text-[10px] uppercase tracking-wider text-muted">{label}</div>
+      <div className="mb-1 text-[12px] uppercase tracking-wider text-muted">{label}</div>
       {text === null ? (
-        <p className="text-xs text-muted">null</p>
+        <p className="text-[13px] text-muted">null</p>
       ) : (
-        <pre className="max-h-72 overflow-auto whitespace-pre-wrap break-words rounded bg-card p-2 font-mono text-[11px] leading-relaxed text-text/90">
+        <pre className="max-h-72 overflow-auto whitespace-pre-wrap break-words rounded bg-card p-2 font-mono text-[13px] leading-relaxed text-text/90">
           {text}
         </pre>
       )}

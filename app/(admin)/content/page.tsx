@@ -8,12 +8,12 @@ import {
   type ExampleRow,
   type TermRow,
 } from "@/lib/admin/content";
-import { formatDate, formatInt } from "@/lib/admin/format";
+import { formatDate } from "@/lib/admin/format";
 import { clampPage, hrefWith, one, pageOf, pick, type SearchParams } from "@/lib/admin/params";
 import { DeleteDialog, FormDialog } from "../dialogs";
 import { Check, Field, fieldClass } from "../fields";
 import { FilterTabs, HiddenParams, inputClass, Pagination } from "../list-controls";
-import { Panel, Section } from "../section";
+import { Panel, Section, Toolbar } from "../section";
 import { Badge, Empty, ErrorNote, Table, Td, Th, Tr } from "../ui";
 import {
   createExample,
@@ -28,7 +28,7 @@ const PATH = "/content";
 
 export default function ContentPage({ searchParams }: PageProps<"/content">) {
   return (
-    <Section title="Content">
+    <Section href={PATH}>
       <ContentBody searchParams={searchParams} />
     </Section>
   );
@@ -61,13 +61,18 @@ async function ContentBody({ searchParams }: { searchParams: Promise<SearchParam
   const termsFiltered = q !== "" || category !== "";
 
   return (
-    <div className="flex flex-col gap-2">
-      <Panel>
-        <div className="mb-2 flex flex-wrap items-center gap-2">
-          <h2 className="mr-2 text-[11px] font-medium uppercase tracking-wider text-muted">
-            Terms · {formatInt(terms.total)}
-          </h2>
-          <form action={PATH} className="flex flex-wrap items-center gap-1.5 text-xs text-muted">
+    <div className="flex flex-col gap-4">
+      <Panel
+        title="Terms"
+        count={terms.total}
+        actions={
+          <FormDialog trigger="new" title="New term" submitLabel="Create" action={createTerm}>
+            <TermFields />
+          </FormDialog>
+        }
+      >
+        <Toolbar>
+          <form action={PATH} className="flex flex-wrap items-center gap-2 text-[14px] text-muted">
             <HiddenParams sp={sp} omit={["q", "cat", "tp"]} />
             <input
               name="q"
@@ -85,24 +90,19 @@ async function ContentBody({ searchParams }: { searchParams: Promise<SearchParam
               aria-label="Category"
               className={`${inputClass} w-36`}
             />
-            <button type="submit" className="rounded-card px-2 py-1 hover:text-text">
+            <button type="submit" className="rounded-card bg-white/5 px-3 py-2 text-text hover:bg-card-hover">
               apply
             </button>
           </form>
           {termsFiltered && (
             <Link
               href={hrefWith(PATH, sp, { q: null, cat: null, tp: null })}
-              className="text-xs text-muted hover:text-text"
+              className="text-[13px] text-muted hover:text-text"
             >
               clear filters
             </Link>
           )}
-          <span className="ml-auto">
-            <FormDialog trigger="new" title="New term" submitLabel="Create" action={createTerm}>
-              <TermFields />
-            </FormDialog>
-          </span>
-        </div>
+        </Toolbar>
 
         {terms.rows.length === 0 ? (
           <Empty>{termsFiltered ? "No terms match these filters." : "No terms yet."}</Empty>
@@ -154,11 +154,20 @@ async function ContentBody({ searchParams }: { searchParams: Promise<SearchParam
         )}
       </Panel>
 
-      <Panel>
-        <div className="mb-2 flex flex-wrap items-center gap-2">
-          <h2 className="mr-2 text-[11px] font-medium uppercase tracking-wider text-muted">
-            Generation examples · {formatInt(examples.total)}
-          </h2>
+      <Panel
+        title="Generation examples"
+        count={examples.total}
+        actions={
+          chains.length > 0 ? (
+            <FormDialog trigger="new" title="New example" submitLabel="Create" action={createExample}>
+              <ExampleFields chains={chains} />
+            </FormDialog>
+          ) : (
+            <span className="text-[13px] text-muted">no prompt chains to attach examples to</span>
+          )
+        }
+      >
+        <Toolbar>
           <FilterTabs
             path={PATH}
             sp={sp}
@@ -171,16 +180,7 @@ async function ContentBody({ searchParams }: { searchParams: Promise<SearchParam
               { value: "negative", label: "Negative" },
             ]}
           />
-          <span className="ml-auto">
-            {chains.length > 0 ? (
-              <FormDialog trigger="new" title="New example" submitLabel="Create" action={createExample}>
-                <ExampleFields chains={chains} />
-              </FormDialog>
-            ) : (
-              <span className="text-xs text-muted">no prompt chains to attach examples to</span>
-            )}
-          </span>
-        </div>
+        </Toolbar>
 
         {examples.rows.length === 0 ? (
           <Empty>
@@ -290,7 +290,7 @@ function ExampleFields({ x, chains }: { x?: ExampleRow; chains: { id: number; na
           className={fieldClass}
         />
       </Field>
-      <fieldset className="flex gap-4 text-xs">
+      <fieldset className="flex gap-4 text-[13px]">
         <legend className="sr-only">Kind</legend>
         <label className="flex items-center gap-1.5">
           <input

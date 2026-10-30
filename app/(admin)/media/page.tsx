@@ -19,20 +19,19 @@ import {
   type SearchParams,
 } from "@/lib/admin/params";
 import { FilterTabs, inputClass, Pagination, SortTh } from "../list-controls";
-import { Panel, Section } from "../section";
+import { Panel, Section, Toolbar } from "../section";
 import { Badge, Empty, ErrorNote, Table, Td, Th, Thumb, Tr } from "../ui";
 import { createCaption, deleteCaption, updateCaption } from "./actions";
 import { CaptionEditor } from "./caption-editor";
 import { CreateCaption } from "./create-caption";
 import { DeleteCaption } from "./delete-caption";
-import { ImagesView } from "./images-view";
 import { ProvenanceDrawer } from "./provenance-drawer";
 
 const PATH = "/media";
 
 export default function MediaPage({ searchParams }: PageProps<"/media">) {
   return (
-    <Section title="Media">
+    <Section href={PATH}>
       <MediaContent searchParams={searchParams} />
     </Section>
   );
@@ -40,30 +39,12 @@ export default function MediaPage({ searchParams }: PageProps<"/media">) {
 
 async function MediaContent({ searchParams }: { searchParams: Promise<SearchParams> }) {
   const sp = await searchParams;
-  const view = one(sp, "view") === "images" ? "images" : "captions";
+  // Images used to be a tab here; they have their own page now.
+  if (one(sp, "view") === "images") redirect("/images");
 
   return (
-    <div className="flex flex-col gap-2">
-      <nav className="flex gap-1 text-xs" aria-label="Media views">
-        {(
-          [
-            ["captions", "AI captions", PATH],
-            ["images", "Images", `${PATH}?view=images`],
-          ] as const
-        ).map(([value, label, href]) => (
-          <Link
-            key={value}
-            href={href}
-            aria-current={view === value ? "page" : undefined}
-            className={`rounded-card px-3 py-1.5 ${
-              view === value ? "bg-card text-text" : "text-muted hover:text-text"
-            }`}
-          >
-            {label}
-          </Link>
-        ))}
-      </nav>
-      {view === "images" ? <ImagesView sp={sp} /> : <CaptionsView sp={sp} />}
+    <div className="flex flex-col gap-4">
+      <CaptionsView sp={sp} />
     </div>
   );
 }
@@ -99,17 +80,17 @@ async function CaptionsView({ sp }: { sp: SearchParams }) {
   return (
     <>
       <details className="group rounded-card bg-card">
-        <summary className="cursor-pointer list-none px-3 py-2 text-xs text-muted hover:text-text">
+        <summary className="cursor-pointer list-none px-5 py-3.5 text-[15px] font-medium hover:text-accent">
           <span className="text-accent group-open:hidden">+</span>
           <span className="hidden text-accent group-open:inline">−</span> New caption
         </summary>
-        <div className="px-3 pb-3">
+        <div className="px-5 pb-5">
           <CreateCaption action={createCaption} images={images} adminId={admin.id} />
         </div>
       </details>
 
       <Panel>
-        <div className="mb-2 flex flex-wrap items-center gap-2">
+        <Toolbar>
           <FilterTabs
             path={PATH}
             sp={sp}
@@ -122,7 +103,7 @@ async function CaptionsView({ sp }: { sp: SearchParams }) {
             ]}
           />
           {/* Search and created-date range submit together, keeping status/sort. */}
-          <form action={PATH} className="flex flex-wrap items-center gap-1.5 text-xs text-muted">
+          <form action={PATH} className="flex flex-wrap items-center gap-2 text-[14px] text-muted">
             {status !== "all" && <input type="hidden" name="status" value={status} />}
             <input type="hidden" name="sort" value={sort} />
             <input type="hidden" name="dir" value={dir} />
@@ -141,19 +122,19 @@ async function CaptionsView({ sp }: { sp: SearchParams }) {
               to
               <input type="date" name="to" defaultValue={to} className={inputClass} />
             </label>
-            <button type="submit" className="rounded-card px-2 py-1 hover:text-text">
+            <button type="submit" className="rounded-card bg-white/5 px-3 py-2 text-text hover:bg-card-hover">
               apply
             </button>
           </form>
           {filtered && (
             <Link
               href={hrefWith(PATH, sp, { status: null, q: null, from: null, to: null })}
-              className="text-xs text-muted hover:text-text"
+              className="text-[13px] text-muted hover:text-text"
             >
               clear filters
             </Link>
           )}
-        </div>
+        </Toolbar>
 
         {list.rows.length === 0 ? (
           <Empty>
@@ -166,11 +147,8 @@ async function CaptionsView({ sp }: { sp: SearchParams }) {
             <Table>
               <thead>
                 <tr>
-                  <Th />
-                  <SortTh label="ID" column="id" num {...sortProps} />
+                  <Th>Image</Th>
                   <Th>Caption</Th>
-                  <Th>Author</Th>
-                  <Th>Status</Th>
                   <SortTh label="Score" column="like_count" num {...sortProps} />
                   <SortTh label="Votes" column="vote_count" num {...sortProps} />
                   <SortTh label="Favs" column="favorites" num {...sortProps} />
@@ -181,24 +159,24 @@ async function CaptionsView({ sp }: { sp: SearchParams }) {
               <tbody>
                 {list.rows.map((c) => (
                   <Tr key={c.id}>
-                    <Td className="w-10">
-                      {c.image_url ? <Thumb url={c.image_url} /> : <div className="size-8 rounded bg-bg" />}
+                    <Td className="w-16">
+                      <Link href={`/images/${c.image_id}`} title={`Open image #${c.image_id}`}>
+                        {c.image_url ? <Thumb url={c.image_url} size={48} /> : <div className="size-12 rounded bg-bg" />}
+                      </Link>
                     </Td>
-                    <Td num muted>
-                      {c.id}
-                    </Td>
-                    <Td className="min-w-[18rem] max-w-[34rem]">
+                    <Td className="min-w-[20rem] max-w-[40rem]">
                       <CaptionEditor
                         key={`${c.id}:${c.content}:${c.is_public}`}
                         content={c.content}
                         isPublic={c.is_public}
                         action={updateCaption.bind(null, c.id)}
                       />
+                      <div className="mt-1.5 flex flex-wrap items-center gap-x-2.5 gap-y-1 text-[13px] text-muted">
+                        {c.is_public ? <Badge tone="accent">published</Badge> : <Badge>draft</Badge>}
+                        <span>#{c.id}</span>
+                        <span>{authorName(c) ?? "no author"}</span>
+                      </div>
                     </Td>
-                    <Td muted className="whitespace-nowrap">
-                      {authorName(c) ?? "—"}
-                    </Td>
-                    <Td>{c.is_public ? <Badge tone="accent">published</Badge> : <Badge>draft</Badge>}</Td>
                     <Td num>{formatSigned(c.like_count)}</Td>
                     <Td num>{formatInt(c.vote_count)}</Td>
                     <Td num>{formatInt(c.favorites)}</Td>
@@ -206,11 +184,11 @@ async function CaptionsView({ sp }: { sp: SearchParams }) {
                       {formatDateTime(c.created_at)}
                     </Td>
                     <Td>
-                      <div className="flex items-center justify-end gap-1.5 whitespace-nowrap">
+                      <div className="flex items-center justify-end gap-2 whitespace-nowrap">
                         <Link
                           href={hrefWith(PATH, sp, { caption: String(c.id), page: String(page) })}
                           scroll={false}
-                          className="rounded-[6px] bg-white/5 px-2 py-0.5 text-[11px] text-muted hover:bg-card-hover hover:text-text"
+                          className="rounded-[6px] bg-white/5 px-2.5 py-1 text-[13px] text-muted hover:bg-card-hover hover:text-text"
                         >
                           Provenance
                         </Link>
